@@ -29,19 +29,28 @@ class App extends Component<{}, IState> {
    * Render Graph react component with state.data parse as property data
    */
   renderGraph() {
-    return (<Graph data={this.state.data}/>)
+    return (<Graph data={this.state.data} />)
   }
 
   /**
    * Get new data from server and update the state with the new data
    */
   getDataFromServer() {
-    DataStreamer.getData((serverResponds: ServerRespond[]) => {
-      // Update the state by creating a new array of data that consists of
-      // Previous data in the state and the new data from server
-      this.setState({ data: [...this.state.data, ...serverResponds] });
-    });
+    const load = () => {
+      DataStreamer.getData((serverResponds: ServerRespond[]) => {
+        this.setState({ data: [...this.state.data, ...serverResponds] });
+      });
+    };
+
+    // Fetch data every 100ms
+    this.interval = setInterval(load, 100);
   }
+
+  componentWillUnmount() {
+    // Clear interval when component unmounts to avoid memory leaks
+    clearInterval(this.interval);
+  }
+
 
   /**
    * Render the App react component
@@ -59,7 +68,7 @@ class App extends Component<{}, IState> {
             // As part of your task, update the getDataFromServer() function
             // to keep requesting the data every 100ms until the app is closed
             // or the server does not return anymore data.
-            onClick={() => {this.getDataFromServer()}}>
+            onClick={() => { this.getDataFromServer() }}>
             Start Streaming Data
           </button>
           <div className="Graph">
